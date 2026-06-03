@@ -63,3 +63,6 @@ Example predictions:
 * Update Patient
 * Delete Patient
 
+## AI Integration
+
+This application uses Google Gemini AI API to analyze blood test values and generate health-related remarks dynamically.

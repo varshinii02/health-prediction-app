@@ -2,9 +2,19 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 
+import google.generativeai as genai
+import os
+from dotenv import load_dotenv
+
 app = Flask(__name__)
 
 CORS(app)
+
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+genai.configure(api_key=GEMINI_API_KEY)
 
 # Database Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///patients.db'
@@ -29,17 +39,32 @@ class Patient(db.Model):
 # AI Prediction Function
 def predict(glucose, haemoglobin, cholesterol):
 
-    if glucose > 140:
-        return "High Risk of Diabetes"
+    try:
 
-    elif cholesterol > 240:
-        return "High Cholesterol Risk"
+        model = genai.GenerativeModel("gemini-2.5-flash")
 
-    elif haemoglobin < 12:
-        return "Possible Anemia"
+        prompt = f"""
+Analyze the following blood test values.
 
-    else:
-        return "Normal"
+Glucose: {glucose}
+Haemoglobin: {haemoglobin}
+Cholesterol: {cholesterol}
+
+Give:
+1. Possible health risks
+2. A short remark
+
+Limit response to 2-3 lines only.
+Do not use bullet points.
+"""
+
+        response = model.generate_content(prompt)
+
+        return response.text
+
+    except Exception as e:
+
+        return f"AI Prediction Error: {str(e)}"
 
 
 # CREATE
